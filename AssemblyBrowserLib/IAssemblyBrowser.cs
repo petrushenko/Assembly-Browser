@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace AssemblyBrowserLib
 {
-    public class Class1
+    interface IAssemblyBrowser
     {
+        NamespaceInfo[] GetNamespaces(string assemblyPath);
     }
 }
