@@ -1,13 +1,9 @@
 ﻿using AssemblyBrowserLib;
 using Microsoft.VisualStudio.PlatformUI;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace AssemblyBrowser
 {
@@ -17,7 +13,9 @@ namespace AssemblyBrowser
 
         public ViewModel()
         {
-
+            AssemblyBrowserLib.AssemblyBrowser ab = new AssemblyBrowserLib.AssemblyBrowser();
+            var nm = ab.GetNamespaces(@"D:\bsuir\C#\projects\ConsoleApp1\ConsoleApp2\bin\Debug\ConsoleApp2.exe");
+            Containers = new ObservableCollection<ContainerInfo>(nm);
         }
 
         public ObservableCollection<ContainerInfo> Containers { get { return _containers; } set { _containers = value; OnPropertyChanged(nameof(Containers)); } }
@@ -29,7 +27,7 @@ namespace AssemblyBrowser
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public DelegateCommand OpenFile { get; }
+        public ICommand OpenFile { get { return new OpenFileCommand(() => { OpenAssembly(); }); } }
 
         public void OpenAssembly()
         {

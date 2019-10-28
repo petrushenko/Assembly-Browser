@@ -26,10 +26,6 @@ namespace AssemblyBrowser
         {
             InitializeComponent();
             //TODO realize VIEWMODEL
-            AssemblyBrowserLib.AssemblyBrowser ab = new AssemblyBrowserLib.AssemblyBrowser();
-            var nm = ab.GetNamespaces(@"D:\bsuir\C#\projects\ConsoleApp1\ConsoleApp2\bin\Debug\ConsoleApp2.exe");
-            var vm = new ViewModel();
-            vm.Containers = new ObservableCollection<ContainerInfo>(nm);
         }
     }
 }
