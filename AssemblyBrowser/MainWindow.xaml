@@ -6,13 +6,23 @@
         xmlns:local="clr-namespace:AssemblyBrowser"
         mc:Ignorable="d"
         Title="MainWindow" Height="600" Width="400">
+    <Window.DataContext>
+        <local:ViewModel/>
+    </Window.DataContext>
     <Grid>
-        <TreeView x:Name="membersTree">
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Path=Members}">
-                    <TextBlock Text="{Binding Name}"/>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="File">
+                    <MenuItem Header="Open" Command="{Binding OpenFile}"></MenuItem>
+                </MenuItem>
+            </Menu>
+            <TreeView x:Name="membersTree" DockPanel.Dock="Bottom" ItemsSource="{Binding Path=Containers}">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Path=Members}">
+                        <TextBlock Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </DockPanel>
     </Grid>
 </Window>

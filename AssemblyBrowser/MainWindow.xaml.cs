@@ -25,11 +25,11 @@ namespace AssemblyBrowser
         public MainWindow()
         {
             InitializeComponent();
+            //TODO realize VIEWMODEL
             AssemblyBrowserLib.AssemblyBrowser ab = new AssemblyBrowserLib.AssemblyBrowser();
             var nm = ab.GetNamespaces(@"D:\bsuir\C#\projects\ConsoleApp1\ConsoleApp2\bin\Debug\ConsoleApp2.exe");
-            ObservableCollection<ContainerInfo> oc = new ObservableCollection<ContainerInfo>(nm);
-            ViewModel.Containers = oc;
-            membersTree.ItemsSource = ViewModel.Containers;
+            var vm = new ViewModel();
+            vm.Containers = new ObservableCollection<ContainerInfo>(nm);
         }
     }
 }
