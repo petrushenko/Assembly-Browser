@@ -8,7 +8,7 @@ namespace AssemblyBrowserLib
 {
     public class AssemblyBrowser : IAssemblyBrowser
     {
-        public NamespaceInfo[] GetNamespaces(string assemblyPath)
+        public ContainerInfo[] GetNamespaces(string assemblyPath)
         {
             var assembly = Assembly.LoadFile(assemblyPath);
             var types = assembly.GetTypes();
@@ -34,15 +34,14 @@ namespace AssemblyBrowserLib
 
         private string GetTypeName(Type type)
         {
+            var result = type.Name;
             if (type.IsGenericType)
             {
-                return type.Name + GetGenericArgumentsString(type.GetGenericArguments());
+                result += GetGenericArgumentsString(type.GetGenericArguments());
             }
-            else
-            {
-                return type.Name;
-            }
+            return result;
         }
+
         private string GetMethodName(MethodBase method)
         {
             if (method.IsGenericMethod)
@@ -74,9 +73,8 @@ namespace AssemblyBrowserLib
         private string CreateMethodDeclarationString(MethodInfo methodInfo)
         {
             var returnType = GetTypeName(methodInfo.ReturnType);
-            var name = methodInfo.Name;
             var parameters = methodInfo.GetParameters();
-            var declaration = returnType + " " + name + GetMethodParametersString(parameters);
+            var declaration = returnType + " " + GetMethodName(methodInfo) + GetMethodParametersString(parameters);
             
             return declaration;
         }
@@ -100,7 +98,7 @@ namespace AssemblyBrowserLib
         private TypeInfo GetTypeInfo(Type type)
         {
             var typeInfo = new TypeInfo() { Name = GetTypeName(type) };
-            var members = type.GetMembers();
+            var members = type.GetMembers(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static);
             foreach (var member in members)
             {
                 var memberInfo = new MemberInfo();
@@ -109,22 +107,36 @@ namespace AssemblyBrowserLib
                     var methodInfo = member as MethodInfo;
                     if (methodInfo != null)
                     {
-                        memberInfo.Name = GetMethodName(methodInfo);
-                        memberInfo.DeclarationInfo = CreateMethodDeclarationString(methodInfo);
+                        memberInfo.Name = CreateMethodDeclarationString(methodInfo);
                     }
                 }
-                else if (member.MemberType == MemberTypes.Property || member.MemberType == MemberTypes.Field)
+                else if (member.MemberType == MemberTypes.Property)
                 {
-                    memberInfo.Name = member.Name; 
-                    memberInfo.DeclarationInfo = GetTypeName(member.DeclaringType);
+                    var property = ((PropertyInfo)member);
+                    memberInfo.Name = GetTypeName(property.PropertyType) + " " + member.Name;
+                }
+                else if (member.MemberType == MemberTypes.Field)
+                {
+                    memberInfo.Name = GetTypeName(((FieldInfo)member).FieldType) + " " + member.Name;
+                }
+                else if (member.MemberType == MemberTypes.Event)
+                {
+                    memberInfo.Name = "event " + GetTypeName(((EventInfo)member).EventHandlerType) + " " + member.Name;
                 }
                 else if (member.MemberType == MemberTypes.Constructor)  
                 {
                     var constructorInfo = member as ConstructorInfo;
-                    memberInfo.Name = GetMethodName(constructorInfo);
-                    memberInfo.DeclarationInfo = constructorInfo.Name + GetMethodParametersString(constructorInfo.GetParameters());
+                    memberInfo.Name = constructorInfo.Name + GetMethodParametersString(constructorInfo.GetParameters());
                 }
-                typeInfo.AddMember(memberInfo);
+                else
+                {
+                    var kek = (System.Reflection.TypeInfo)member;
+                    memberInfo.Name = GetTypeName(kek) + " " + member.Name;
+                }
+                if (memberInfo.Name != null)
+                {
+                    typeInfo.AddMember(memberInfo);
+                }
             }
 
             return typeInfo;

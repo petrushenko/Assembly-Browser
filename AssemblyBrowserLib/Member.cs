@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace AssemblyBrowserLib
 {
-    public class MemberInfo : Member
+    public abstract class Member
     {
-        public override MemberType GetContainerType => MemberType.Member;
+        public abstract MemberType GetContainerType { get; }
+
+        public string Name { get; set; }
     }
 }

@@ -42,7 +42,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyBrowser.cs" />
+    <Compile Include="MemberType.cs" />
+    <Compile Include="ContainerInfo.cs" />
     <Compile Include="IAssemblyBrowser.cs" />
+    <Compile Include="Member.cs" />
     <Compile Include="MemberInfo.cs" />
     <Compile Include="NamespaceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

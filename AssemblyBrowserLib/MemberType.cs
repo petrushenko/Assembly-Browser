@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace AssemblyBrowserLib
 {
-    public class MemberInfo : Member
+    public enum MemberType
     {
-        public override MemberType GetContainerType => MemberType.Member;
+        Namespace,
+        Type,
+        Member
     }
 }

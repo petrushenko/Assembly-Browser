@@ -6,17 +6,12 @@ using System.Threading.Tasks;
 
 namespace AssemblyBrowserLib
 {
-    public class TypeInfo
+    public class TypeInfo : ContainerInfo
     {
-        public TypeInfo()
+        public TypeInfo() : base()
         {
-            Members = new List<MemberInfo>();
         }
-        public string Name { get; set; }        
-        public List<MemberInfo> Members { get; set; }
-        internal void AddMember(MemberInfo member)
-        {
-            Members.Add(member);
-        }
+
+        public override MemberType GetContainerType => MemberType.Type;
     }
 }
