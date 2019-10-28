@@ -13,12 +13,10 @@ namespace AssemblyBrowser
 
         public ViewModel()
         {
-            AssemblyBrowserLib.AssemblyBrowser ab = new AssemblyBrowserLib.AssemblyBrowser();
-            var nm = ab.GetNamespaces(@"D:\bsuir\C#\projects\ConsoleApp1\ConsoleApp2\bin\Debug\ConsoleApp2.exe");
-            Containers = new ObservableCollection<ContainerInfo>(nm);
+            Containers = new ObservableCollection<ContainerInfo>();
         }
 
-        public ObservableCollection<ContainerInfo> Containers { get { return _containers; } set { _containers = value; OnPropertyChanged(nameof(Containers)); } }
+        public ObservableCollection<ContainerInfo> Containers { get { return _containers; } set { _containers = value; } }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
