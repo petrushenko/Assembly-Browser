@@ -75,7 +75,7 @@ namespace AssemblyBrowserLib
             var returnType = GetTypeName(methodInfo.ReturnType);
             var parameters = methodInfo.GetParameters();
             var declaration = returnType + " " + GetMethodName(methodInfo) + GetMethodParametersString(parameters);
-            
+
             return declaration;
         }
 
@@ -123,15 +123,15 @@ namespace AssemblyBrowserLib
                 {
                     memberInfo.Name = "event " + GetTypeName(((EventInfo)member).EventHandlerType) + " " + member.Name;
                 }
-                else if (member.MemberType == MemberTypes.Constructor)  
+                else if (member.MemberType == MemberTypes.Constructor)
                 {
                     var constructorInfo = member as ConstructorInfo;
                     memberInfo.Name = constructorInfo.Name + GetMethodParametersString(constructorInfo.GetParameters());
                 }
                 else
                 {
-                    var kek = (System.Reflection.TypeInfo)member;
-                    memberInfo.Name = GetTypeName(kek) + " " + member.Name;
+                    var memberTypeInfo = (System.Reflection.TypeInfo)member;
+                    memberInfo.Name = GetTypeName(memberTypeInfo) + " " + member.Name;
                 }
                 if (memberInfo.Name != null)
                 {

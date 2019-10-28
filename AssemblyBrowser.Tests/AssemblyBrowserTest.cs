@@ -6,6 +6,7 @@ namespace AssemblyBrowserLib.Tests
     [TestClass]
     public class AssemblyBrowserTest
     {
+        //TODO: add more tests
         [TestMethod]
         public void Test()
         {
