@@ -25,7 +25,6 @@ namespace AssemblyBrowser
         public MainWindow()
         {
             InitializeComponent();
-            //TODO realize VIEWMODEL
         }
     }
 }

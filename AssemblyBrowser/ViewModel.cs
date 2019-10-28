@@ -1,5 +1,6 @@
 ﻿using AssemblyBrowserLib;
-using Microsoft.VisualStudio.PlatformUI;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Forms;
@@ -9,14 +10,37 @@ namespace AssemblyBrowser
 {
     public class ViewModel : INotifyPropertyChanged
     {
-        private ObservableCollection<ContainerInfo> _containers;
+
+        private readonly AssemblyBrowserLib.AssemblyBrowser _model = new AssemblyBrowserLib.AssemblyBrowser();
+        private string _openedFile;
 
         public ViewModel()
         {
-            Containers = new ObservableCollection<ContainerInfo>();
+            Containers = new List<ContainerInfo>();
         }
 
-        public ObservableCollection<ContainerInfo> Containers { get { return _containers; } set { _containers = value; } }
+        public List<ContainerInfo> Containers { get; set; }
+
+        public string OpenedFile
+        {
+            get
+            {
+                return _openedFile;
+            }
+            set
+            {
+                _openedFile = value;
+                try
+                {
+                    Containers = new List<ContainerInfo>(_model.GetNamespaces(value));
+                }
+                catch (Exception e)
+                {
+                    _openedFile = string.Format("Error: [{0}]", e.Message);
+                }
+                OnPropertyChanged(nameof(Containers));
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -29,19 +53,17 @@ namespace AssemblyBrowser
 
         public void OpenAssembly()
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            using (var openFileDialog = new OpenFileDialog())
             {
-                Filter = "Assemblies|*.dll;*.exe",
-                Title = "Select assembly",
-                Multiselect = false
-            };
+                openFileDialog.Filter = "Assemblies|*.dll;*.exe";
+                openFileDialog.Title = "Select assembly";
+                openFileDialog.Multiselect = false;
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                AssemblyBrowserLib.AssemblyBrowser assemblyBrowser = new AssemblyBrowserLib.AssemblyBrowser();
-                Containers = new ObservableCollection<ContainerInfo>(assemblyBrowser.GetNamespaces(openFileDialog.FileName));
-
-                OnPropertyChanged(nameof(Containers));
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    OpenedFile = openFileDialog.FileName;
+                    OnPropertyChanged(nameof(OpenedFile));
+                }
             }
         }
     }
