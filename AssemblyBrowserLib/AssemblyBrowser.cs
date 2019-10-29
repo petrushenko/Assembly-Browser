@@ -2,12 +2,48 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace AssemblyBrowserLib
 {
     public class AssemblyBrowser : IAssemblyBrowser
     {
+        private List<MethodInfo> _extensionMethods = new List<MethodInfo>();
+
+        private void AddExtensionMethods(ContainerInfo[] containers)
+        {
+            foreach (var method in _extensionMethods)
+            {
+                var parameters = method.GetParameters();
+                if (parameters.Length < 0) continue;
+                var param = parameters[0];
+                var extentedType = param.ParameterType;
+                var namespce = GetNamespaceByName(containers, extentedType.Namespace);
+                if (namespce == null) continue;
+                var types = namespce.Members;
+                foreach (var type in types)
+                {
+                    if (type.Name == GetTypeDeclaration(extentedType.GetTypeInfo()))
+                    {
+                        ((TypeInfo)type).AddMember(new MemberInfo() { Name = "exteinsion method " + CreateMethodDeclarationString(method) });
+                    }
+                }                
+            }
+        }
+
+        private ContainerInfo GetNamespaceByName(ContainerInfo[] containers, string name)
+        {
+            foreach (var namespce in containers)
+            {
+                if (namespce.Name == name)
+                {
+                    return namespce;
+                }
+            }
+            return null;
+        }
+
         public ContainerInfo[] GetNamespaces(string assemblyPath)
         {
             var assembly = Assembly.LoadFile(assemblyPath);
@@ -16,6 +52,7 @@ namespace AssemblyBrowserLib
             foreach (var type in types)
             {
                 var namespce = type.Namespace;
+                if (namespce == null) continue;
                 NamespaceInfo namespaceInfo = null;
                 if (!namespaces.ContainsKey(namespce))
                 {
@@ -29,12 +66,14 @@ namespace AssemblyBrowserLib
                 TypeInfo typeInfo = GetTypeInfo(type);
                 namespaceInfo.AddMember(typeInfo);
             }
-            return namespaces.Values.ToArray();
+            var result = namespaces.Values.ToArray();
+            AddExtensionMethods(result);
+            return result;
         }
 
         private string GetTypeName(Type type)
         {
-            var result = type.Name;
+            var result = string.Format("{0}.{1}", type.Namespace, type.Name);
             if (type.IsGenericType)
             {
                 result += GetGenericArgumentsString(type.GetGenericArguments());
@@ -44,14 +83,12 @@ namespace AssemblyBrowserLib
 
         private string GetMethodName(MethodBase method)
         {
+
             if (method.IsGenericMethod)
             {
                 return method.Name + GetGenericArgumentsString(method.GetGenericArguments());
             }
-            else
-            {
-                return method.Name;
-            }
+            return method.Name;
         }
 
         private string GetGenericArgumentsString(Type[] arguments)
@@ -118,7 +155,6 @@ namespace AssemblyBrowserLib
             else if (typeInfo.IsNotPublic)
                 result.Append("private ");
 
-            
             if (typeInfo.IsAbstract && typeInfo.IsSealed)
                 result.Append("static ");
             else if (typeInfo.IsAbstract)
@@ -170,7 +206,7 @@ namespace AssemblyBrowserLib
         }
 
         private string GetPropertyDeclaration(PropertyInfo propertyInfo)
-        {            
+        {
             var result = new StringBuilder(GetTypeName(propertyInfo.PropertyType));
             result.Append(" ");
             result.Append(propertyInfo.Name);
@@ -195,6 +231,7 @@ namespace AssemblyBrowserLib
             result.Append(string.Format("{0} {1}", GetTypeName(eventInfo.EventHandlerType), eventInfo.Name));
             result.Append(string.Format(" [{0}] ", eventInfo.AddMethod.Name));
             result.Append(string.Format(" [{0}] ", eventInfo.RemoveMethod.Name));
+
             return result.ToString();
         }
 
@@ -226,20 +263,31 @@ namespace AssemblyBrowserLib
             return result.ToString();
         }
 
+        private string GetConstructorDeclaration(ConstructorInfo constructorInfo)
+        {
+            return string.Format("{0} {1} {2}", GetMethodDeclaration(constructorInfo),
+                                            GetMethodName(constructorInfo),
+                                            GetMethodParametersString(constructorInfo.GetParameters()));
+        }
+
         private TypeInfo GetTypeInfo(Type type)
         {
             var typeInfo = new TypeInfo() { Name = GetTypeDeclaration(type.GetTypeInfo()) };
-            var members = type.GetMembers(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static);
+            var members = type.GetMembers(BindingFlags.NonPublic
+                                          | BindingFlags.Instance
+                                          | BindingFlags.Public
+                                          | BindingFlags.Static);
             foreach (var member in members)
             {
                 var memberInfo = new MemberInfo();
                 if (member.MemberType == MemberTypes.Method)
                 {
-                    var methodInfo = member as MethodInfo;
-                    if (methodInfo != null)
+                    var method = (MethodInfo)member;
+                    if (method.IsDefined(typeof(ExtensionAttribute), false))
                     {
-                        memberInfo.Name = CreateMethodDeclarationString(methodInfo);
+                        _extensionMethods.Add(method);
                     }
+                    memberInfo.Name = CreateMethodDeclarationString(method);                    
                 }
                 else if (member.MemberType == MemberTypes.Property)
                 {
@@ -255,13 +303,11 @@ namespace AssemblyBrowserLib
                 }
                 else if (member.MemberType == MemberTypes.Constructor)
                 {
-                    var constructorInfo = member as ConstructorInfo;
-                    memberInfo.Name = constructorInfo.Name + GetMethodParametersString(constructorInfo.GetParameters());
+                    memberInfo.Name = GetConstructorDeclaration((ConstructorInfo)member);
                 }
                 else
                 {
-                    var memberTypeInfo = (System.Reflection.TypeInfo)member;
-                    memberInfo.Name = GetTypeDeclaration(memberTypeInfo.GetTypeInfo());
+                    memberInfo.Name = GetTypeDeclaration((System.Reflection.TypeInfo)member);
                 }
                 if (memberInfo.Name != null)
                 {
