@@ -102,18 +102,29 @@ namespace AssemblyBrowserLib
         private string GetTypeDeclaration(System.Reflection.TypeInfo typeInfo)
         {
             var result = new StringBuilder();
-            if (typeInfo.IsPublic)
+
+            if (typeInfo.IsNestedPublic || typeInfo.IsPublic)
                 result.Append("public ");
+            else if (typeInfo.IsNestedPrivate)
+                result.Append("private ");
+            else if (typeInfo.IsNestedFamily)
+                result.Append("protected ");
+            else if (typeInfo.IsNestedAssembly)
+                result.Append("internal ");
+            else if (typeInfo.IsNestedFamORAssem)
+                result.Append("protected internal ");
+            else if (typeInfo.IsNestedFamANDAssem)
+                result.Append("private protected ");
+            else if (typeInfo.IsNotPublic)
+                result.Append("private ");
+
             
-            if (typeInfo.IsClass)
-            {
-                if (typeInfo.IsAbstract && typeInfo.IsSealed)
-                    result.Append("static ");
-                else if (typeInfo.IsAbstract)
-                    result.Append("abstract ");
-                else if (typeInfo.IsSealed)
-                    result.Append("sealed ");
-            }
+            if (typeInfo.IsAbstract && typeInfo.IsSealed)
+                result.Append("static ");
+            else if (typeInfo.IsAbstract)
+                result.Append("abstract ");
+            else if (typeInfo.IsSealed)
+                result.Append("sealed ");
 
             if (typeInfo.IsClass)
                 result.Append("class ");
@@ -126,23 +137,27 @@ namespace AssemblyBrowserLib
             else if (typeInfo.IsValueType && !typeInfo.IsPrimitive)
                 result.Append("struct ");
 
-            result.Append(GetTypeName(typeInfo.AsType()));
-            result.Append(" ");
-            
+            result.Append(string.Format("{0} ", GetTypeName(typeInfo.AsType())));
+
             return result.ToString();
         }
 
         private string GetMethodDeclaration(MethodBase methodBase)
         {
             var result = new StringBuilder();
-            if (methodBase.IsPublic)
-                result.Append("public ");
-            else if (methodBase.IsPrivate)
-                result.Append("private ");
-            else if (methodBase.IsFamily)
+
+            if (methodBase.IsAssembly)
                 result.Append("internal ");
+            else if (methodBase.IsFamily)
+                result.Append("protected ");
             else if (methodBase.IsFamilyOrAssembly)
                 result.Append("protected internal ");
+            else if (methodBase.IsFamilyAndAssembly)
+                result.Append("private protected ");
+            else if (methodBase.IsPrivate)
+                result.Append("private ");
+            else if (methodBase.IsPublic)
+                result.Append("public ");
 
             if (methodBase.IsStatic)
                 result.Append("static ");
@@ -186,10 +201,18 @@ namespace AssemblyBrowserLib
         private string GetFieldDeclaration(FieldInfo fieldInfo)
         {
             var result = new StringBuilder();
-            if (fieldInfo.IsPublic)
-                result.Append("public ");
+            if (fieldInfo.IsAssembly)
+                result.Append("internal ");
+            else if (fieldInfo.IsFamily)
+                result.Append("protected ");
+            else if (fieldInfo.IsFamilyOrAssembly)
+                result.Append("protected internal ");
+            else if (fieldInfo.IsFamilyAndAssembly)
+                result.Append("private protected ");
             else if (fieldInfo.IsPrivate)
                 result.Append("private ");
+            else if (fieldInfo.IsPublic)
+                result.Append("public ");
 
             if (fieldInfo.IsInitOnly)
                 result.Append("readonly ");
@@ -220,8 +243,7 @@ namespace AssemblyBrowserLib
                 }
                 else if (member.MemberType == MemberTypes.Property)
                 {
-                    var property = ((PropertyInfo)member);
-                    memberInfo.Name = GetPropertyDeclaration(property);
+                    memberInfo.Name = GetPropertyDeclaration((PropertyInfo)member);
                 }
                 else if (member.MemberType == MemberTypes.Field)
                 {
@@ -229,7 +251,6 @@ namespace AssemblyBrowserLib
                 }
                 else if (member.MemberType == MemberTypes.Event)
                 {
-                    var kek = (EventInfo)member;
                     memberInfo.Name = GetEventDeclaration((EventInfo)member);
                 }
                 else if (member.MemberType == MemberTypes.Constructor)
