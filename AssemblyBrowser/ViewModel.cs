@@ -1,7 +1,6 @@
 ﻿using AssemblyBrowserLib;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -11,7 +10,7 @@ namespace AssemblyBrowser
     public class ViewModel : INotifyPropertyChanged
     {
 
-        private readonly AssemblyBrowserLib.AssemblyBrowser _model = new AssemblyBrowserLib.AssemblyBrowser();
+        private readonly IAssemblyBrowser _model = new AssemblyBrowserLib.AssemblyBrowser();
         private string _openedFile;
 
         public ViewModel()
@@ -30,6 +29,7 @@ namespace AssemblyBrowser
             set
             {
                 _openedFile = value;
+                Containers = null;
                 try
                 {
                     Containers = new List<ContainerInfo>(_model.GetNamespaces(value));
@@ -49,7 +49,7 @@ namespace AssemblyBrowser
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public ICommand OpenFile { get { return new OpenFileCommand(() => { OpenAssembly(); }); } }
+        public ICommand OpenFile { get { return new OpenFileCommand(OpenAssembly); } }
 
         public void OpenAssembly()
         {
