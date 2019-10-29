@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace AssemblyBrowserLib
+﻿namespace AssemblyBrowserLib
 {
     public class NamespaceInfo : ContainerInfo
     {
