@@ -60,6 +60,10 @@
       <Project>{b340e57b-377f-4a2b-911b-9725fac7249f}</Project>
       <Name>AssemblyBrowserLib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestableLibrary\TestableLibrary.csproj">
+      <Project>{3fc9afc8-b03e-4987-b758-728c9f1ad093}</Project>
+      <Name>TestableLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
