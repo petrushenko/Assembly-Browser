@@ -9,7 +9,7 @@ namespace AssemblyBrowserLib
 {
     public class AssemblyBrowser : IAssemblyBrowser
     {
-        private List<MethodInfo> _extensionMethods = new List<MethodInfo>();
+        private readonly List<MethodInfo> _extensionMethods = new List<MethodInfo>();
 
         private void AddExtensionMethods(ContainerInfo[] containers)
         {
@@ -19,55 +19,46 @@ namespace AssemblyBrowserLib
                 if (parameters.Length < 0) continue;
                 var param = parameters[0];
                 var extentedType = param.ParameterType;
-                var namespce = GetNamespaceByName(containers, extentedType.Namespace);
-                if (namespce == null) continue;
-                var types = namespce.Members;
-                foreach (var type in types)
+                foreach (var container in containers)
                 {
-                    if (type.Name == GetTypeDeclaration(extentedType.GetTypeInfo()))
+                    if (container.DeclarationName != extentedType.Namespace) continue;
+                    var types = container.Members;
+                    foreach (var type in types)
                     {
-                        ((TypeInfo)type).AddMember(new MemberInfo() { Name = "exteinsion method " + CreateMethodDeclarationString(method) });
+                        if (type.DeclarationName == GetTypeDeclaration(extentedType.GetTypeInfo()))
+                        {
+                            ((TypeInfo)type).AddMember(new MemberInfo() { DeclarationName = "ext. method: " + CreateExtensionMethodDeclarationString(method), Name = method.Name });
+                        }
                     }
                 }
             }
-        }
-
-        private ContainerInfo GetNamespaceByName(ContainerInfo[] containers, string name)
-        {
-            foreach (var namespce in containers)
-            {
-                if (namespce.Name == name)
-                {
-                    return namespce;
-                }
-            }
-            return null;
         }
 
         public ContainerInfo[] GetNamespaces(string assemblyPath)
         {
             var assembly = Assembly.LoadFile(assemblyPath);
             var types = assembly.GetTypes();
-            var namespaces = new Dictionary<string, NamespaceInfo>();
+            var namespaces = new Dictionary<string, ContainerInfo>();
             foreach (var type in types)
             {
-                var namespce = type.Namespace;
-                if (namespce == null) continue;
-                NamespaceInfo namespaceInfo = null;
-                if (!namespaces.ContainsKey(namespce))
+                var typeNamespace = type.Namespace;
+                if (typeNamespace == null) continue;
+                ContainerInfo namespaceInfo;
+                if (!namespaces.ContainsKey(typeNamespace))
                 {
-                    namespaceInfo = new NamespaceInfo { Name = namespce };
-                    namespaces.Add(namespce, namespaceInfo);
+                    namespaceInfo = new NamespaceInfo { DeclarationName = typeNamespace };
+                    namespaces.Add(typeNamespace, namespaceInfo);
                 }
                 else
                 {
-                    namespaces.TryGetValue(namespce, out namespaceInfo);
+                    namespaces.TryGetValue(typeNamespace, out namespaceInfo);
                 }
-                TypeInfo typeInfo = GetTypeInfo(type);
-                namespaceInfo.AddMember(typeInfo);
+                var typeInfo = GetTypeInfo(type);
+                namespaceInfo?.AddMember(typeInfo);
             }
-            var result = namespaces.Values.ToArray();
+            ContainerInfo[] result = namespaces.Values.ToArray();
             AddExtensionMethods(result);
+
             return result;
         }
 
@@ -113,6 +104,17 @@ namespace AssemblyBrowserLib
             var parameters = methodInfo.GetParameters();
             var declaration =
                 $"{GetMethodDeclaration(methodInfo)} {returnType} {GetMethodName(methodInfo)} {GetMethodParametersString(parameters)}";
+
+            return declaration;
+        }
+
+        private string CreateExtensionMethodDeclarationString(MethodInfo methodInfo)
+        {
+            var returnType = GetTypeName(methodInfo.ReturnType);
+            var parameters = new List<ParameterInfo>(methodInfo.GetParameters());
+            parameters.RemoveAt(0);
+            var declaration =
+                $"{GetMethodDeclaration(methodInfo)} {returnType} {GetMethodName(methodInfo)} {GetMethodParametersString(parameters.ToArray())}";
 
             return declaration;
         }
@@ -268,7 +270,11 @@ namespace AssemblyBrowserLib
 
         private TypeInfo GetTypeInfo(Type type)
         {
-            var typeInfo = new TypeInfo() { Name = GetTypeDeclaration(type.GetTypeInfo()) };
+            var typeInfo = new TypeInfo() 
+            { 
+                DeclarationName = GetTypeDeclaration(type.GetTypeInfo()),
+                Name = type.Name
+            };
             var members = type.GetMembers(BindingFlags.NonPublic
                                           | BindingFlags.Instance
                                           | BindingFlags.Public
@@ -283,30 +289,31 @@ namespace AssemblyBrowserLib
                     {
                         _extensionMethods.Add(method);
                     }
-                    memberInfo.Name = CreateMethodDeclarationString(method);
+                    memberInfo.DeclarationName = CreateMethodDeclarationString(method);
                 }
                 else if (member.MemberType == MemberTypes.Property)
                 {
-                    memberInfo.Name = GetPropertyDeclaration((PropertyInfo)member);
+                    memberInfo.DeclarationName = GetPropertyDeclaration((PropertyInfo)member);
                 }
                 else if (member.MemberType == MemberTypes.Field)
                 {
-                    memberInfo.Name = GetFieldDeclaration(((FieldInfo)member));
+                    memberInfo.DeclarationName = GetFieldDeclaration(((FieldInfo)member));
                 }
                 else if (member.MemberType == MemberTypes.Event)
                 {
-                    memberInfo.Name = GetEventDeclaration((EventInfo)member);
+                    memberInfo.DeclarationName = GetEventDeclaration((EventInfo)member);
                 }
                 else if (member.MemberType == MemberTypes.Constructor)
                 {
-                    memberInfo.Name = GetConstructorDeclaration((ConstructorInfo)member);
+                    memberInfo.DeclarationName = GetConstructorDeclaration((ConstructorInfo)member);
                 }
                 else
                 {
-                    memberInfo.Name = GetTypeDeclaration((System.Reflection.TypeInfo)member);
+                    memberInfo.DeclarationName = GetTypeDeclaration((System.Reflection.TypeInfo)member);
                 }
-                if (memberInfo.Name != null)
+                if (memberInfo.DeclarationName != null)
                 {
+                    memberInfo.Name = member.Name;
                     typeInfo.AddMember(memberInfo);
                 }
             }

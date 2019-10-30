@@ -24,7 +24,7 @@
             <TreeView ItemsSource="{Binding Path=Containers}" DockPanel.Dock="Top">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Path=Members}">
-                        <TextBlock Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="{Binding DeclarationName, UpdateSourceTrigger=PropertyChanged}"/>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
