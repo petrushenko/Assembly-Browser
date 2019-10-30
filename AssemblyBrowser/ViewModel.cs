@@ -36,7 +36,7 @@ namespace AssemblyBrowser
                 }
                 catch (Exception e)
                 {
-                    _openedFile = string.Format("Error: [{0}]", e.Message);
+                    _openedFile = $"Error: [{e.Message}]";
                 }
                 OnPropertyChanged(nameof(Containers));
             }
@@ -55,8 +55,8 @@ namespace AssemblyBrowser
         {
             using (var openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.Filter = "Assemblies|*.dll;*.exe";
-                openFileDialog.Title = "Select assembly";
+                openFileDialog.Filter = @"Assemblies|*.dll;*.exe";
+                openFileDialog.Title = @"Select assembly";
                 openFileDialog.Multiselect = false;
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)

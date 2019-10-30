@@ -21,7 +21,7 @@
                     <TextBlock Text="{Binding OpenedFile}"/>
                 </StatusBarItem>
             </StatusBar>
-            <TreeView x:Name="membersTree" ItemsSource="{Binding Path=Containers}" DockPanel.Dock="Top">
+            <TreeView ItemsSource="{Binding Path=Containers}" DockPanel.Dock="Top">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Path=Members}">
                         <TextBlock Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>

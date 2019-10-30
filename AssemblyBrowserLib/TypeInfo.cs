@@ -5,7 +5,6 @@
         public TypeInfo() : base()
         {
         }
-
         public override MemberType GetContainerType => MemberType.Type;
     }
 }

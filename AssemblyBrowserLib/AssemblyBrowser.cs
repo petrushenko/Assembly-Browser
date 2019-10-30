@@ -28,7 +28,7 @@ namespace AssemblyBrowserLib
                     {
                         ((TypeInfo)type).AddMember(new MemberInfo() { Name = "exteinsion method " + CreateMethodDeclarationString(method) });
                     }
-                }                
+                }
             }
         }
 
@@ -73,7 +73,7 @@ namespace AssemblyBrowserLib
 
         private string GetTypeName(Type type)
         {
-            var result = string.Format("{0}.{1}", type.Namespace, type.Name);
+            var result = $"{type.Namespace}.{type.Name}";
             if (type.IsGenericType)
             {
                 result += GetGenericArgumentsString(type.GetGenericArguments());
@@ -111,11 +111,8 @@ namespace AssemblyBrowserLib
         {
             var returnType = GetTypeName(methodInfo.ReturnType);
             var parameters = methodInfo.GetParameters();
-            var declaration = string.Format("{0} {1} {2} {3}",
-                                            GetMethodDeclaration(methodInfo),
-                                            returnType,
-                                            GetMethodName(methodInfo),
-                                            GetMethodParametersString(parameters));
+            var declaration =
+                $"{GetMethodDeclaration(methodInfo)} {returnType} {GetMethodName(methodInfo)} {GetMethodParametersString(parameters)}";
 
             return declaration;
         }
@@ -173,7 +170,7 @@ namespace AssemblyBrowserLib
             else if (typeInfo.IsValueType && !typeInfo.IsPrimitive)
                 result.Append("struct ");
 
-            result.Append(string.Format("{0} ", GetTypeName(typeInfo.AsType())));
+            result.Append($"{GetTypeName(typeInfo.AsType())} ");
 
             return result.ToString();
         }
@@ -228,9 +225,9 @@ namespace AssemblyBrowserLib
         private string GetEventDeclaration(EventInfo eventInfo)
         {
             var result = new StringBuilder();
-            result.Append(string.Format("{0} {1}", GetTypeName(eventInfo.EventHandlerType), eventInfo.Name));
-            result.Append(string.Format(" [{0}] ", eventInfo.AddMethod.Name));
-            result.Append(string.Format(" [{0}] ", eventInfo.RemoveMethod.Name));
+            result.Append($"{GetTypeName(eventInfo.EventHandlerType)} {eventInfo.Name}");
+            result.Append($" [{eventInfo.AddMethod.Name}] ");
+            result.Append($" [{eventInfo.RemoveMethod.Name}] ");
 
             return result.ToString();
         }
@@ -265,9 +262,8 @@ namespace AssemblyBrowserLib
 
         private string GetConstructorDeclaration(ConstructorInfo constructorInfo)
         {
-            return string.Format("{0} {1} {2}", GetMethodDeclaration(constructorInfo),
-                                            GetMethodName(constructorInfo),
-                                            GetMethodParametersString(constructorInfo.GetParameters()));
+            return
+                $"{GetMethodDeclaration(constructorInfo)} {GetMethodName(constructorInfo)} {GetMethodParametersString(constructorInfo.GetParameters())}";
         }
 
         private TypeInfo GetTypeInfo(Type type)
@@ -287,7 +283,7 @@ namespace AssemblyBrowserLib
                     {
                         _extensionMethods.Add(method);
                     }
-                    memberInfo.Name = CreateMethodDeclarationString(method);                    
+                    memberInfo.Name = CreateMethodDeclarationString(method);
                 }
                 else if (member.MemberType == MemberTypes.Property)
                 {
